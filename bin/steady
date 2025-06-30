@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# light up LED on pin 18 if JACK is available
-sudo echo "18" > /sys/class/gpio/export
-sleep 1
-sudo echo "out" > /sys/class/gpio/gpio18/direction
-
-UP="$(ps aux | grep jackd | wc -l)"
-sudo echo "$[UP - 1]" > /sys/class/gpio/gpio18/value
+# light up LED on GPIO26 if JACK is available
+UP=$(ps aux | grep jackd | wc -l)
+gpioset $CHIP 26=$[UP - 1]
