@@ -1,23 +1,51 @@
-# caPiture
-Headless multitrack audio recording for your Raspberry Pi.
+# XR18RecRaspi4
 
-capPiture uses [jack_capture](https://github.com/kmatheussen/jack_capture) to headlessly multitrack record the input of the [Behringer XR18 Mixer](http://www.musictribe.com/Categories/Behringer/Mixers/Digital/XR18/p/P0BI8). For now, it is hardcoded to work with the XR18. If you want to use it with another audio interface, please modify the [startcapiture script](https://github.com/danielappelt/caPiture/blob/5838da6bf123259d0c4eefd611a68dba7fbfd34e/bin/startcapiture#L17) accordingly.
+Headless multitrack audio recording for Behringer XR18 on Raspberry Pi 4.
 
-From another computer
-- Download the latest version of [Raspbian Lite](https://raspberrypi.org/downloads/raspbian) and install it to an SD card (bigger is better). For Linux users, the command is:
+This is a fork from **capPiture**. Please consider using the original project [capPiture](https://github.com/danielappelt/capPiture). Mainly changes are:
+
+- Use of *gpiodetect*, *gpioget*, *gpioset* instead of *echo in*
+- Use of a usb drive instead of the sd card for storing the recordings
+- Use ssh (not necesary, but useful)
+
+# Installation
+
+First install **Raspberry Pi OS Lite** on Raspberry 4 with the Raspberry Pi Imager with the following settings(See this instructions for more details: https://www.raspberrypi.com/software/operating-systems):
+
+- Set locale
+- Akcivate ssh
+- Set hostname (e.g. to xr18rec)
+
+Then copy the bin folder to */home/pi* of the raspberry pi sd card
+
+Then start the Raspberry Pi with this card and:
+
+- Connect to the raspberry pi via ssh
+- Run these commands :
+
 ```bash
-sudo dd bs=4M if=nameoftheimage of=/dev/yoursdcard status=progress conv=fsync
-```
-- Once the image is on the SD card, copy the [bin folder](https://github.com/danielappelt/caPiture/tree/master/bin) containing the caPiture scripts to /home/pi/
-
-On the Raspberry Pi
-- In raspi-config set the Rpi to autologin in console mode
-- Run these two commands :
-```bash
-sudo apt install --no-install-recommends jackd2 jack_capture dbus-x11
+sudo apt update
+sudo apt ugrade
+sudo apt install --no-install-recommends jackd2 jack-capture dbus-x11
 echo "startcapiture" >> /home/pi/.profile
+sudo mkdir /mnt/usb
+sudo chown pi:pi /mnt/usb
 ```
 
-GPIO
-- Connect GPIO 18 to the + leg of an LED with a 330 Ohm resistor in between, other leg to gnd
-- Attach buttons to GPIO 3 and 4. 3 starts and stops recording, 4 deletes the last recording. 3+4 powers off the Rpi.
+Run **sudo raspi-config** and enable auto login
+
+Restart the raspberry pi
+## GPIO
+
+- Connect *GPIO26* to the + leg of an LED with a 330 Ohm resistor in between, other leg to gnd
+- Attach buttons to *GPI19* and *GPI13*. *GPI19* starts and stops recording, *GPI13* deletes the last recording. *GPI19* + *GPI13* powers off the Rpi.
+- LED light codes:
+    - **Off:** no connection to XR18
+    - **blinking (0.5 seconds intervall) + 2 seconds off:** no connection to USB stick
+    - **On:** recording can start
+    - **blinking (1 second intervall):** recording is in progress
+
+
+
+## TODO:
+- improve usb drive detection (now only works for sda1 dev).
