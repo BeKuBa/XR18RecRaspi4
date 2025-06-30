@@ -1,5 +1,35 @@
 #!/bin/bash
 
+# find out which chip
+export CHIP=0
+if [ $(gpiodetect | grep -q "pinctrl-rp") ]; then
+  CHIP=4
+fi
+
+# set pull-up mode to GPIO19 and GPIO13
+gpioget  -Bpull-up $CHIP 19 13
+
+# set GPIO26 to 0
+gpioset $CHIP 26=0
+
+# wait until XR18 is connected
+while [ $(alsactl info | grep -c X18XR18) -eq 0 ]; do
+  sleep 1
+done
+
+# wait until USB stick is mounted
+while [ $(lsblk | grep -c /mnt/usb) -eq 0 ]; do
+  sudo mount /dev/sda1 /mnt/usb
+  gpioset $CHIP 26=1
+  sleep 0.25
+  gpioset $CHIP 26=0
+  sleep 0.25
+  gpioset $CHIP 26=1
+  sleep 0.25
+  gpioset $CHIP 26=0
+  sleep 2
+done
+
 # Start listening for buttons on pin 3 and 4
 hotkeys &
 
@@ -13,10 +43,10 @@ export DISPLAY
 export DBUS_SESSION_BUS_ADDRESS
 export DBUS_SESSION_BUS_PID
 
-# Start JACK server
-jackd -dalsa -dhw:X18XR18 -r44100 -p2048 -n3 &
 
-# Light up LED on pin 18 if JACK is available
+# Start JACK server
+jackd -dalsa -dhw:X18XR18 -r48000 -p2048 -n3 &
+
+# Light up LED on GPIO26 if JACK is available
 jack_wait -w
 steady &
-

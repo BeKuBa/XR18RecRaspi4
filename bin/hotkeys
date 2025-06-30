@@ -1,25 +1,39 @@
 #!/bin/bash
 
-sudo echo "3" > /sys/class/gpio/export
-sudo echo "4" > /sys/class/gpio/export
-
-sleep 1
-sudo echo "in" > /sys/class/gpio/gpio3/direction
-sudo echo "in" > /sys/class/gpio/gpio4/direction
-
 while [ : ]
 do
-    BTN1=$(cat /sys/class/gpio/gpio3/value)$(cat /sys/class/gpio/gpio4/value)
+    # get state of buttons, min button press time= 0.5 seconds
+    BTN1=$(gpioget -l 0 19 13)
     sleep 0.5
-    BTN2=$(cat /sys/class/gpio/gpio3/value)$(cat /sys/class/gpio/gpio4/value)
+    BTN2=$(gpioget -l 0 19 13)
 
-    if [ $BTN1 != $BTN2 ]; then continue; fi
 
-    if [ $BTN1 = "10" ]; then
-       rec &
+    found=0
+
+    if [ "$BTN1" != "$BTN2" ]; then continue; fi
+
+
+    if [ "$BTN1" = "1 0" ]; then
+        found=1
+        rec &
     fi
-    if [ $BTN1 = "01" ]; then del_last; fi
-    if [ $BTN1 = "11" ]; then sudo poweroff; fi
+    if [ "$BTN1" = "0 1" ]; then
+        found=1
+        del_last
+    fi
+    if [ "$BTN1" = "1 1" ]; then
+        found=1
+        sudo poweroff
+    fi
 
+    # wait for release of all buttons
     sleep 0.5
+    if [ $found -eq 1 ]; then
+        BTN1=$(gpioget -l 0 19 13)
+        while [ "$BTN1" != "0 0" ]
+        do
+           sleep 0.5
+           BTN1=$(gpioget -l 0 19 13)
+        done
+    fi
 done
