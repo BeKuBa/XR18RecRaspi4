@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 IS_RECORDING=$(ps aux | grep jack_capture | wc -l)
 
 if [ $IS_RECORDING = 2 ]; then
@@ -10,12 +11,11 @@ else
     blink &
     BLINK_PID=$!
 
-    FILE=$(date +%s).wav
-    jack_capture -fn $FILE -d 480 -p system:capture_*
+    FILE=/mnt/usb/$(date +%Y-%m-%d_%H-%M-%S).wav
 
-    #cp $filename /media/usb0/
+    jack_capture -fn ""$FILE"" -d 480 -p system:capture_*
 
+    # Stop blinking
     kill $BLINK_PID
     steady &
 fi
-
