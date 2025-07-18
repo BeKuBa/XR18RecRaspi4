@@ -11,9 +11,9 @@ else
     blink &
     BLINK_PID=$!
 
-    FILE=/mnt/usb/$(date +%Y-%m-%d_%H-%M-%S).wav
+    FILE=/mnt/usb/$(date +%Y-%m-%d_%H-%M-%S)
 
-    jack_capture -fn ""$FILE"" -d 480 -p system:capture_*
+    jack_capture -ns -fp ""$FILE""  -p system:capture_*
 
     # Stop blinking
     kill $BLINK_PID
